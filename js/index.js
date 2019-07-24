@@ -36,7 +36,13 @@ var timestampPrev;
 
 var defaultCon = {
     audio: false,
-    video: true,
+    video: {
+        displaySurface: 'window',
+        logicalSurface: true,
+        width: {  max: 1080,  },
+        height: {  max: 720, },
+        frameRate: {  max: 10 ,}
+    }
 };
 getUserMediaConstraintsDiv.value = JSON.stringify(defaultCon, null, '    ' );
 
@@ -59,8 +65,7 @@ function getMedia() {
         }
     }
 
-    console.warn(getUserMediaConstraints());
-    if(detectBrowser() == "edge"){
+    if('getDisplayMedia' in window.navigator){
         navigator.getDisplayMedia(getUserMediaConstraints())
             .then(gotStream)
             .catch(function(e) {
@@ -71,11 +76,11 @@ function getMedia() {
                 console.log(message);
                 getMediaButton.disabled = false;
             });
-    }else if(detectBrowser() == "chrome"){
+    }else if('getDisplayMedia' in window.navigator.mediaDevices){
         navigator.mediaDevices.getDisplayMedia(getUserMediaConstraints())
             .then(gotStream)
             .catch(function(e) {
-                console.warn("getUserMedia failed!");
+                console.error(e.toString());
                 var message = 'getUserMedia error: ' + e.name + '\n' +
                     'PermissionDeniedError may mean invalid constraints.';
                 alert(message);
@@ -83,7 +88,7 @@ function getMedia() {
                 getMediaButton.disabled = false;
             });
     }else {
-        console.warn(detectBrowser())
+        console.warn("该浏览器不支持getDisplayMedia接口");
     }
 }
 
@@ -336,27 +341,3 @@ function dumpStats(results) {
     return statsString;
 }
 
-
-
-function detectBrowser() {
-    var userAgent = navigator.userAgent; //取得浏览器的userAgent字符串
-    var isOpera = userAgent.indexOf("Opera") > -1;
-    if (isOpera) {
-        return "opera"
-    }; //判断是否Opera浏览器
-    if (userAgent.indexOf("Firefox") > -1) {
-        return "firefox";
-    } //判断是否Firefox浏览器
-    if (userAgent.indexOf("Chrome") > -1){
-        return "chrome";
-    }
-    if (userAgent.indexOf("Safari") > -1) {
-        return "Safari";
-    } //判断是否Safari浏览器
-    if (userAgent.indexOf("compatible") > -1 && userAgent.indexOf("MSIE") > -1 && !isOpera) {
-        return "IE";
-    }; //判断是否IE浏览器
-    if(userAgent.indexOf("Edge") > -1){
-        return "edge";
-    }; //判断是否IE的Edge浏览器
-}
