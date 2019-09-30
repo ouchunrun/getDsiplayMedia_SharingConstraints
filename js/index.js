@@ -33,15 +33,12 @@ var localStream;
 var bytesPrev;
 var timestampPrev;
 
-
-var defaultCon = {
+var defaultCon ={
     audio: false,
     video: {
-        displaySurface: 'window',
-        logicalSurface: true,
-        width: {  max: 1080,  },
-        height: {  max: 720, },
-        frameRate: {  max: 10 ,}
+        width: { max: '1920' },
+        height: { max: '1080' },
+        frameRate: { max: '5' }
     }
 };
 getUserMediaConstraintsDiv.value = JSON.stringify(defaultCon, null, '    ' );
@@ -64,11 +61,14 @@ function getMedia() {
             videoTracks[i].stop();
         }
     }
+    var constraints = getUserMediaConstraints()
+    console.warn('getDisplayMedia constraints: \n', JSON.stringify(constraints, null, '    '));
 
     if('getDisplayMedia' in window.navigator){
-        navigator.getDisplayMedia(getUserMediaConstraints())
+        navigator.getDisplayMedia(constraints)
             .then(gotStream)
             .catch(function(e) {
+                console.error(e)
                 console.warn("getUserMedia failed!");
                 var message = 'getUserMedia error: ' + e.name + '\n' +
                     'PermissionDeniedError may mean invalid constraints.';
@@ -80,7 +80,7 @@ function getMedia() {
         navigator.mediaDevices.getDisplayMedia(getUserMediaConstraints())
             .then(gotStream)
             .catch(function(e) {
-                console.error(e.toString());
+                console.error(e);
                 var message = 'getUserMedia error: ' + e.name + '\n' +
                     'PermissionDeniedError may mean invalid constraints.';
                 alert(message);
@@ -107,7 +107,6 @@ function getUserMediaConstraints() {
 
 function displayGetUserMediaConstraints() {
     var constraints = getUserMediaConstraints();
-    console.log('getUserMedia constraints', constraints);
     getUserMediaConstraintsDiv.value = JSON.stringify(constraints, null, '    ');
 }
 
@@ -163,6 +162,8 @@ function createPeerConnection() {
             );
     };
     remotePeerConnection.ontrack = function(e) {
+        console.warn("localPeerConnection iceConnectionState: ", localPeerConnection.iceConnectionState)
+        console.warn("remotePeerConnectioniceConnectionState: ", remotePeerConnection.iceConnectionState)
         if (remoteVideo.srcObject !== e.streams[0]) {
             console.log('remotePeerConnection got stream');
             remoteVideo.srcObject = e.streams[0];
@@ -177,8 +178,24 @@ function createPeerConnection() {
             remotePeerConnection.setRemoteDescription(desc);
             remotePeerConnection.createAnswer().then(
                 function(desc2) {
+                    // firefox
+                    var replacement = 'max-fs=3600';
+                    desc2.sdp = desc2.sdp.replace(/max-fs=([a-zA-Z0-9]{3,5})/, replacement);
+
+                    var replacement2 = 'max-fr=15';
+                    desc2.sdp = desc2.sdp.replace(/max-fr=([a-zA-Z0-9]{1,3})/, replacement2);
+
+                    // // chrome
+                    // var parseSdp = SDPTools.parseSDP(desc2.sdp)
+                    // SDPTools.removeCodecByPayload(parseSdp, 0, [97, 98, 99 ,100, 101, 122, 127 ,121, 125 ,107, 108, 109, 124, 120 ,123, 119, 114 ,115, 116])
+                    // desc2.sdp = SDPTools.writeSDP(parseSdp)
+                    //
+                    // var replacement3 = 'profile-level-id=420016';
+                    // desc2.sdp = desc2.sdp.replace(/profile-level-id=([a-zA-Z0-9]{6})/, replacement3);
+                    // desc2.sdp = desc2.sdp + 'a=imageattr:102 send [x=1920,y=1080] recv [x=1280,y=720]\n'
+
                     console.log('remotePeerConnection answering');
-                    console.log(`Answer from pc2:\n${desc2.sdp}`);
+                    console.warn(`Answer from pc2:\n${desc2.sdp}`);
                     
                     remotePeerConnection.setLocalDescription(desc2);
                     localPeerConnection.setRemoteDescription(desc2);
@@ -322,7 +339,7 @@ setInterval(function() {
     }
 }, 1000);
 
-// Dumping a stats variable as a string.
+// Dumping a stats variable as a string.1
 // might be named toString?
 function dumpStats(results) {
     var statsString = '';
