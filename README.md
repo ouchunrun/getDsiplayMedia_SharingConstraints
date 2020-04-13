@@ -17,7 +17,10 @@ getDisplayMedia可以在Edge和chrome70+版本使用，都需要HTTPS源
 不能实现任何分辨率、帧率控制。
 
 - Edge可以设置constraints的width/height/framerate等参数，但并不能做到任何限制。
-- chrome只能设置{audio:false,video:true}或{video:true}，不能设置其他参数（注意：audio要么为false,要么不设置）。
+- ~~chrome只能设置{audio:false,video:true}或{video:true}，不能设置其他参数（注意：audio要么为false,要么不设置）。~~
+
+    + 新版本已开始支持同时共享音频，但是支持程度还不高。
+    + 兼容性参考：https://developer.mozilla.org/zh-CN/docs/Web/API/MediaDevices/getDisplayMedia#Browser_compatibility
 
 - 该MediaStream对象将只有一个MediaStreamTrack用于捕获的视频流; 没有MediaStreamTrack对应于捕获的音频流。
 
