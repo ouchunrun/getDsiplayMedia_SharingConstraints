@@ -34,7 +34,7 @@ var bytesPrev;
 var timestampPrev;
 
 var defaultCon ={
-    audio: false,
+    audio: true,
     video: {
         width: { max: '1920' },
         height: { max: '1080' },
